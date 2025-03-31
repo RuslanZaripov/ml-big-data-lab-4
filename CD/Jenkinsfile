@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDS = credentials('ml-big-data')
+        LOCALE = 'en_US.UTF-8'
+        LC_ALL = "${LOCALE}"
+        LANG    = "${LOCALE}"
+        LANGUAGE = "${LOCALE}"
+        CONTAINER_NAME = 'ml-big-data-lab-3'
+    }
+
+    options {
+        timestamps()
+        skipDefaultCheckout(true)
+    }
+    stages {
+        stage('Login') {
+            steps {
+                bat 'docker login -u %DOCKERHUB_CREDS_USR% -p %DOCKERHUB_CREDS_PSW%'
+            }
+        }
+
+        stage('Pull image') {
+            steps {
+                bat 'docker pull zarus03/%CONTAINER_NAME%:latest'
+            }
+        }
+
+        stage('Run container') {
+            steps {
+                bat '''
+                    docker run --name %CONTAINER_NAME% -p 80:5556 -d zarus03/%CONTAINER_NAME%:latest
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            bat 'docker stop %CONTAINER_NAME% && docker logout'
+        }
+    }
+}

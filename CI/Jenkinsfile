@@ -1,0 +1,99 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDS = credentials('ml-big-data')
+        LOCALE = 'en_US.UTF-8'
+        LC_ALL = "${LOCALE}"
+        LANG    = "${LOCALE}"
+        LANGUAGE = "${LOCALE}"
+        REPO_DIR = 'ml-big-data-lab-3'
+        CONTAINER_NAME = "${REPO_DIR}"
+    }
+
+    options {
+        timestamps()
+        skipDefaultCheckout(true)
+    }
+    stages {
+        stage('Clone github repository') {
+            steps {
+                cleanWs()
+                bat 'chcp 65001 && git clone -b main https://github.com/RuslanZaripov/%REPO_DIR%.git'
+            }
+        }
+
+        stage('Copy vault-pass.env File') {
+            steps {
+                withCredentials([file(credentialsId: 'vault-pass', variable: 'VAULT_PASS')]) {
+                    bat 'xcopy /F %VAULT_PASS% %REPO_DIR%\\env'
+                }
+            }
+        }
+
+        stage('Checkout repo dir') {
+            steps {
+                dir(REPO_DIR) {
+                    bat 'chcp 65001 && dir && dir env'
+                }
+            }
+        }
+
+        stage('Login') {
+            steps {
+                bat 'chcp 65001 && docker login -u %DOCKERHUB_CREDS_USR% -p %DOCKERHUB_CREDS_PSW%'
+            }
+        }
+
+        stage('Create and run docker container') {
+            steps {
+                dir(REPO_DIR) {
+                    script {
+                        try {
+                            bat 'chcp 65001 && docker-compose build'
+                        } finally {
+                            bat 'chcp 65001 && docker-compose up -d'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Checkout container logs') {
+            steps {
+                dir(REPO_DIR) {
+                    bat '''
+                        docker-compose up -d
+                        for /f %%i in ('docker ps -qf "name=^web$"') do set containerId=%%i
+                        echo %containerId%
+                        IF "%containerId%" == "" (
+                            echo "No container running"
+                        ) ELSE (
+                            docker logs --tail 1000 -f %containerId%
+                        )
+                    '''
+                }
+            }
+        }
+
+        stage('Checkout coverage report') {
+            steps {
+                dir(REPO_DIR) {
+                    bat 'docker-compose logs -t --tail 10'
+                }
+            }
+        }
+
+        stage('Push') {
+            steps {
+                bat 'chcp 65001 && docker push zarus03/%CONTAINER_NAME%:latest'
+            }
+        }
+    }
+
+    post {
+        always {
+            bat 'chcp 65001 && docker logout'
+        }
+    }
+}
