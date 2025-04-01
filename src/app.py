@@ -3,6 +3,10 @@ from pydantic import BaseModel
 from typing import List, Dict
 from logger import Logger
 from database import RedisClient
+from kafka_consumer import KafkaConsumer
+from kafka_producer import KafkaProducer
+import time
+import threading
 import pandas as pd
 import traceback
 import sys
@@ -53,8 +57,52 @@ class WebApp:
         self.log.info('FastAPI app initialized')
 
         self.database_client = RedisClient()
-
-        self.prediction_service = None
+        
+        # Initialize Kafka
+        self.kafka_producer = KafkaProducer(
+            bootstrap_servers="kafka:9092",
+            topic="predictions",
+            group_id="ml_app_group"
+        )
+        
+        # Start Kafka consumer in a separate thread
+        self.kafka_consumer = KafkaConsumer(
+            bootstrap_servers="kafka:9092",
+            topic="predictions",
+            group_id="ml_app_group"
+        )
+        
+        self.consumer_thread = threading.Thread(
+            target=self._consume_predictions,
+            daemon=True
+        )
+        self.consumer_thread.start()
+        
+    def _consume_predictions(self):
+        """Background thread to consume prediction messages"""
+        while True:
+            message = self.kafka_consumer.consume_messages()
+            
+            if not message:
+                continue
+            
+            self.log.info(f"Received prediction result: {message}")
+            
+            try:
+                prediction_id = message['prediction_id']
+                
+                if self.database_client.get(prediction_id):
+                    self.log.warning(f"Prediction {prediction_id} already exists in database")
+                else:
+                    self.database_client.set(
+                        prediction_id,
+                        json.dumps(message)
+                    )
+                    self.log.info(f"Stored prediction {prediction_id} in database")
+                    
+            except Exception as db_error:
+                self.log.error(f"Database operation failed: {str(db_error)}")
+                self.log.error(traceback.format_exc())
 
     def _create_app(self):
         """
@@ -93,7 +141,8 @@ class WebApp:
                     "score": score,
                     "input_data": input_data.model_dump_json()
                 }
-                self.database_client.set(prediction_id, json.dumps(prediction_data))
+                
+                self.kafka_producer.send_message(prediction_data)
                 
                 return {"prediction_id": prediction_id}
             except Exception as e:
