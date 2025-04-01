@@ -66,7 +66,7 @@ class KafkaConsumer:
         prediction_id = data['prediction_id']
         input_data = data['input_data'] 
             
-        X = self.scaler.transform(pd.json_normalize(input_data['']))
+        X = self.scaler.transform(pd.json_normalize(input_data['X']))
         pred = self.model.predict(X).tolist()
         
         prediction_data = {'pred': pred}
