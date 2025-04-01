@@ -7,7 +7,7 @@ pipeline {
         LC_ALL = "${LOCALE}"
         LANG    = "${LOCALE}"
         LANGUAGE = "${LOCALE}"
-        REPO_DIR = 'ml-big-data-lab-3'
+        REPO_DIR = 'ml-big-data-lab-4'
         CONTAINER_NAME = "${REPO_DIR}"
     }
 
