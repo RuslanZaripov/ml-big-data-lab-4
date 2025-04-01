@@ -4,11 +4,11 @@ import sys
 import os
 import argparse
 import time
-from logger import Logger
 from fastapi.testclient import TestClient
 
 sys.path.insert(1, os.path.join(os.getcwd(), "src"))
 
+from logger import Logger
 from app import WebApp
 
 
