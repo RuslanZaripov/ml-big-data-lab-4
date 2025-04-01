@@ -5,7 +5,6 @@ from logger import Logger
 from database import RedisClient
 from kafka_producer import KafkaProducer
 import traceback
-import argparse
 import uvicorn
 import json
 import uuid
