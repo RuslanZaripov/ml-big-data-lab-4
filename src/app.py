@@ -85,7 +85,7 @@ class WebApp:
         while not self._shutdown_event.is_set():
             self.log.info("Polling for messages...")
             
-            message = self.kafka_consumer.consume_messages(timeout=10.0)
+            message = self.kafka_consumer.consume_messages(timeout=1.0)
 
             if not message:
                 continue
