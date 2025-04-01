@@ -80,7 +80,11 @@ class WebApp:
         
     def _consume_predictions(self):
         """Background thread to consume prediction messages"""
+        self.log.info("Kafka consumer thread started")
+        
         while not self._shutdown_event.is_set():
+            self.log.info("Polling for messages...")
+            
             message = self.kafka_consumer.consume_messages(timeout=10.0)
 
             if not message:

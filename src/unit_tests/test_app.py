@@ -3,6 +3,7 @@ import json
 import sys
 import os
 import argparse
+import time
 from fastapi.testclient import TestClient
 
 sys.path.insert(1, os.path.join(os.getcwd(), "src"))
@@ -26,11 +27,16 @@ class TestPrediction(unittest.TestCase):
         prediction_id = response.json()["prediction_id"]
         self.assertIsNotNone(prediction_id)
         
-        response = self.client.get(f"/predictions/{prediction_id}")
+        max_retries = 5
+        for _ in range(max_retries):
+            response = self.client.get(f"/predictions/{prediction_id}")
+            if response.status_code == 200:
+                break
+            time.sleep(0.5)
+        
         self.assertEqual(response.status_code, 200)
 
         retrieved_data = response.json()
-        
         self.assertIn("prediction", retrieved_data)
         self.assertIn("score", retrieved_data)
         self.assertEqual(json.loads(retrieved_data["input_data"]), input_data)
