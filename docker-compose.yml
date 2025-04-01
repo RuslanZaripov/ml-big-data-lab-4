@@ -53,7 +53,7 @@ services:
                 condition: service_healthy
             decrypt:
                 condition: service_completed_successfully
-            kafka:
+            broker:
                 condition: service_healthy
         volumes:
             - ./env:/app/env
