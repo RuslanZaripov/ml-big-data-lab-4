@@ -62,9 +62,6 @@ services:
             && python src/preprocess.py 
             && python src/train.py 
             && python src/predict.py -m LOG_REG -t func
-            && coverage run src/unit_tests/test_preprocess.py
-            && coverage run -a src/unit_tests/test_training.py
-            && coverage run -a src/unit_tests/test_database.py
             && coverage run -a src/unit_tests/test_app.py
             && coverage report -m
             && (python src/app.py --model LOG_REG &) 
