@@ -27,6 +27,7 @@ class KafkaProducer:
 
     def send_message(self, message: dict):
         try:
+            self.producer.poll(0)
             self.producer.produce(
                 self.topic,
                 json.dumps(message).encode('utf-8'),
