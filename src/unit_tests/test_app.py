@@ -20,7 +20,7 @@ class TestPrediction(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         args = argparse.Namespace(model="LOG_REG")
-        cls.app = WebApp(args).app
+        cls.app = WebApp().app
         cls.client = TestClient(cls.app)
 
     def test_prediction_and_retrieval(self):
