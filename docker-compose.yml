@@ -26,10 +26,10 @@ services:
             KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
             KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
         healthcheck:
-            test: [ "CMD", "nc", "-vz", "localhost", "29092" ]
+            test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "broker:29092"]
             interval: 10s
-            timeout: 3s
-            retries: 3
+            timeout: 10s
+            retries: 5
         ports:
             - 9092:9092
     decrypt:
