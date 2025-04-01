@@ -35,8 +35,9 @@ class KafkaConsumer:
             
             return json.loads(msg.value().decode('utf-8'))
         
-        except KeyboardInterrupt:
-            pass
-        
-        finally:
-            self.consumer.close()
+        except Exception as e:
+            self.log.error(f"Error consuming message: {e}")
+            return None
+
+    def close(self):
+        self.consumer.close()

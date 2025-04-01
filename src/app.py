@@ -77,11 +77,13 @@ class WebApp:
         )
         self.consumer_thread.start()
         
+        self._shutdown_event = threading.Event()
+        
     def _consume_predictions(self):
         """Background thread to consume prediction messages"""
-        while True:
-            message = self.kafka_consumer.consume_messages()
-            
+        while not self._shutdown_event.is_set():
+            message = self.kafka_consumer.consume_messages(timeout=10.0)
+
             if not message:
                 continue
             
@@ -193,7 +195,11 @@ class WebApp:
             host (str): Host address to run the server.
             port (int): Port number to run the server.
         """
-        uvicorn.run(self.app, host=host, port=port)
+        try:
+            uvicorn.run(self.app, host=host, port=port)
+        finally:
+            self._shutdown_event.set()
+            self.kafka_consumer.close()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Web App Model")

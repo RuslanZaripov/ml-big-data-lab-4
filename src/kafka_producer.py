@@ -15,7 +15,6 @@ class KafkaProducer:
         self.log = logger.get_logger(__name__)
         producer_config = {
             'bootstrap.servers': bootstrap_servers,
-            'auto.offset.reset': 'earliest'
         }
         self.producer = Producer(producer_config)
         self.topic = topic
