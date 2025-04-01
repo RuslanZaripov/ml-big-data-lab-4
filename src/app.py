@@ -45,7 +45,7 @@ class WebApp:
         self.database_client = RedisClient()
         
         self.kafka_producer = KafkaProducer(
-            broker="broker:29092",
+            broker="broker:9092",
             topic="predictions",
         )
 
