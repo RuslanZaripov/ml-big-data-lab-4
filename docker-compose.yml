@@ -68,7 +68,7 @@ services:
     consumer:
         build: .
         container_name: consumer
-        command: ["python", "src/consumer.py"]
+        command: ["python", "src/kafka_consumer.py"]
         volumes:
             - ./env:/app/env
         depends_on:
