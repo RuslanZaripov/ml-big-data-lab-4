@@ -86,10 +86,10 @@ class WebApp:
             if not message:
                 continue
             
-            self.log.info(f"Received prediction result: {message}")
-            
             try:
                 prediction_id = message['prediction_id']
+                
+                self.log.info(f"Received prediction result: {prediction_id}")
                 
                 if self.database_client.get(prediction_id):
                     self.log.warning(f"Prediction {prediction_id} already exists in database")
@@ -136,7 +136,9 @@ class WebApp:
                 pred = self.model.predict(X).tolist()
 
                 prediction_id = str(uuid.uuid4())
+                
                 prediction_data = {
+                    "prediction_id": prediction_id,
                     "prediction": pred,
                     "score": score,
                     "input_data": input_data.model_dump_json()
