@@ -60,7 +60,7 @@ class WebApp:
         
         # Initialize Kafka
         self.kafka_producer = KafkaProducer(
-            bootstrap_servers="localhost:9092",
+            bootstrap_servers="broker:29092",
             topic="predictions",
         )
         
