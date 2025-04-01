@@ -71,13 +71,12 @@ class WebApp:
             group_id="ml_app_group"
         )
         
+        self._shutdown_event = threading.Event()
         self.consumer_thread = threading.Thread(
             target=self._consume_predictions,
             daemon=True
         )
         self.consumer_thread.start()
-        
-        self._shutdown_event = threading.Event()
         
     def _consume_predictions(self):
         """Background thread to consume prediction messages"""
