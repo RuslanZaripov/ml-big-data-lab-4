@@ -8,10 +8,10 @@ services:
             ZOOKEEPER_CLIENT_PORT: 2181
             ZOOKEEPER_TICK_TIME: 2000
         healthcheck:
-            test: [ "CMD", "zkServer.sh", "status" ]
+            test: [ "CMD", "nc", "-vz", "localhost", "2181" ]
             interval: 10s
-            timeout: 5s
-            retries: 5
+            timeout: 3s
+            retries: 3
     kafka:
         image: confluentinc/cp-kafka:7.3.0
         container_name: kafka
