@@ -1,37 +1,4 @@
 services:
-    zookeeper:
-        image: confluentinc/cp-zookeeper:7.3.0
-        container_name: zookeeper
-        environment:
-            ZOOKEEPER_CLIENT_PORT: 2181
-            ZOOKEEPER_TICK_TIME: 2000
-        healthcheck:
-            test: [ "CMD", "nc", "-vz", "localhost", "2181" ]
-            interval: 10s
-            timeout: 3s
-            retries: 3
-    broker:
-        image: confluentinc/cp-kafka:7.3.0
-        hostname: broker    
-        container_name: broker
-        depends_on:
-            zookeeper:
-                condition: service_healthy
-        environment:
-            KAFKA_BROKER_ID: 1
-            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-            KAFKA_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-            KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-        healthcheck:
-            test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "broker:29092"]
-            interval: 10s
-            timeout: 10s
-            retries: 5
-        ports:
-            - 9092:9092
     decrypt:
         image: python:3.9-slim
         container_name: decrypt_env
@@ -45,34 +12,6 @@ services:
             && echo $$VAULT_PASSWORD > vault-pass.txt
             && ansible-vault decrypt secrets.env --vault-password-file vault-pass.txt --output .env
             && rm -rf vault-pass.txt"
-    web:
-        build: .
-        container_name: web
-        depends_on:
-            redis:
-                condition: service_healthy
-            decrypt:
-                condition: service_completed_successfully
-            broker:
-                condition: service_healthy
-        volumes:
-            - ./env:/app/env
-        command: bash -c "
-            ls -la
-            && python src/preprocess.py 
-            && python src/train.py 
-            && python src/predict.py -m LOG_REG -t func
-            && coverage run -a src/unit_tests/test_app.py
-            && coverage report -m
-            && (python src/app.py --model LOG_REG &) 
-            && sleep 30
-            && curl -X GET http://localhost:8000/
-            && curl -X POST http://localhost:8000/predict \
-                    -H 'Content-Type":" application/json' \
-                    --data-binary @tests/test_0.json"
-        ports:
-            - 8000:8000
-        image: zarus03/ml-big-data-lab-3:latest
     redis:
         image: redis:latest
         container_name: redis_db
@@ -96,3 +35,75 @@ services:
             interval: 1s
             timeout: 2s
             retries: 10
+    zookeeper:
+        image: confluentinc/cp-zookeeper:7.3.0
+        container_name: zookeeper
+        environment:
+            ZOOKEEPER_CLIENT_PORT: 2181
+            ZOOKEEPER_TICK_TIME: 2000
+        healthcheck:
+            test: [ "CMD", "nc", "-vz", "localhost", "2181" ]
+            interval: 10s
+            timeout: 3s
+            retries: 3
+    broker:
+        image: confluentinc/cp-kafka:7.3.0
+        hostname: broker    
+        container_name: broker
+        depends_on:
+            zookeeper:
+                condition: service_healthy
+        environment:
+            KAFKA_BROKER_ID: 1
+            KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092
+            KAFKA_NUM_PARTITIONS: 1
+        healthcheck:
+            test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "broker:9092"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        ports:
+            - 9092:9092
+    consumer:
+        build: .
+        container_name: consumer
+        command: ["python", "src/consumer.py"]
+        volumes:
+            - ./env:/app/env
+        depends_on:
+            broker:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+    web:
+        build: .
+        container_name: web
+        depends_on:
+            redis:
+                condition: service_healthy
+            decrypt:
+                condition: service_completed_successfully
+            broker:
+                condition: service_healthy
+        volumes:
+            - ./env:/app/env
+        command: bash -c "
+            ls -la
+            && python src/preprocess.py 
+            && python src/train.py 
+            && python src/predict.py -m LOG_REG -t func
+            && coverage run src/unit_tests/test_preprocess.py
+            && coverage run -a src/unit_tests/test_training.py
+            && coverage run -a src/unit_tests/test_database.py
+            && coverage run -a src/unit_tests/test_app.py
+            && coverage report -m
+            && (python src/app.py --model LOG_REG &) 
+            && sleep 30
+            && curl -X GET http://localhost:8000/
+            && curl -X POST http://localhost:8000/predict \
+                    -H 'Content-Type":" application/json' \
+                    --data-binary @tests/test_0.json"
+        ports:
+            - 8000:8000
+        image: zarus03/ml-big-data-lab-3:latest

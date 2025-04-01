@@ -8,16 +8,18 @@ SHOW_LOG = True
 class KafkaProducer:
     def __init__(
         self, 
-        bootstrap_servers: str, 
+        broker: str, 
         topic: str
     ):
         logger = Logger(SHOW_LOG)
         self.log = logger.get_logger(__name__)
+        
         producer_config = {
-            'bootstrap.servers': bootstrap_servers,
+            'bootstrap.servers': broker,
         }
-        self.producer = Producer(producer_config)
         self.topic = topic
+        
+        self.producer = Producer(producer_config)
         
     def delivery_report(self, err, msg):
         if err is not None:
@@ -27,13 +29,14 @@ class KafkaProducer:
 
     def send_message(self, message: dict):
         try:
-            self.producer.poll(0)
+            data = json.dumps(message).encode('utf-8') 
             self.producer.produce(
                 self.topic,
-                json.dumps(message).encode('utf-8'),
+                value=data,
                 callback=self.delivery_report
             )
             self.producer.flush()
+            
         except Exception as e:
             self.log.error(f'Failed to send message: {e}')
             raise
