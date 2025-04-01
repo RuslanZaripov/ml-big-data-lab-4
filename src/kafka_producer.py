@@ -9,14 +9,12 @@ class KafkaProducer:
     def __init__(
         self, 
         bootstrap_servers: str, 
-        topic: str,
-        group_id: str
+        topic: str
     ):
         logger = Logger(SHOW_LOG)
         self.log = logger.get_logger(__name__)
         producer_config = {
             'bootstrap.servers': bootstrap_servers,
-            'group.id': group_id,
             'auto.offset.reset': 'earliest'
         }
         self.producer = Producer(producer_config)

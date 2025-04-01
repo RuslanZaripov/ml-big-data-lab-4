@@ -20,10 +20,7 @@ class KafkaConsumer:
             'auto.offset.reset': 'earliest'
         }
         self.consumer = Consumer(consumer_config)
-
-        self.topic = topic
-        
-        self.consumer.subscribe([self.topic])
+        self.consumer.subscribe([topic])
 
     def consume_messages(self, timeout: float = 1.0):
         try:

@@ -60,14 +60,13 @@ class WebApp:
         
         # Initialize Kafka
         self.kafka_producer = KafkaProducer(
-            bootstrap_servers="kafka:9092",
+            bootstrap_servers="kafka:29092",
             topic="predictions",
-            group_id="ml_app_group"
         )
         
         # Start Kafka consumer in a separate thread
         self.kafka_consumer = KafkaConsumer(
-            bootstrap_servers="kafka:9092",
+            bootstrap_servers="kafka:29092",
             topic="predictions",
             group_id="ml_app_group"
         )
