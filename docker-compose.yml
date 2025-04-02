@@ -79,7 +79,8 @@ services:
             && coverage run -a src/unit_tests/test_training.py
             && coverage run -a src/unit_tests/test_database.py
             && coverage report -m
-            && python src/kafka_consumer.py --model LOG_REG"
+            && (python src/kafka_consumer.py --model LOG_REG &)
+            && sleep 5"
         depends_on:
             decrypt:
                 condition: service_completed_successfully
@@ -87,6 +88,11 @@ services:
                 condition: service_healthy
             broker:
                 condition: service_healthy
+        healthcheck:
+            test: ["CMD", "pgrep", "-f", "kafka_consumer"]
+            interval: 3m
+            timeout: 10s
+            retries: 10
     web:
         build: .
         container_name: web
@@ -111,7 +117,7 @@ services:
             broker:
                 condition: service_healthy
             consumer:
-                condition: service_completed_successfully
+                condition: service_healthy
         ports:
             - 8000:8000
         image: zarus03/ml-big-data-lab-3:latest
