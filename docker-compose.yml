@@ -79,8 +79,7 @@ services:
             && coverage run -a src/unit_tests/test_training.py
             && coverage run -a src/unit_tests/test_database.py
             && coverage report -m
-            && (python src/kafka_consumer.py --model LOG_REG &)
-            && sleep 5"
+            && python src/kafka_consumer.py --model LOG_REG"
         depends_on:
             decrypt:
                 condition: service_completed_successfully
