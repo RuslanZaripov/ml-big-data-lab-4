@@ -40,8 +40,10 @@ class KafkaConsumer:
             'auto.offset.reset': 'earliest', 
             'enable.auto.offset.store': False}
         
+        self.topic = topic
+        
         self.consumer = Consumer(conf)
-        self.consumer.subscribe(topics=[topic])
+        self.consumer.subscribe(topics=[self.topic])
         
     def _load_model(self):
         """
