@@ -73,7 +73,7 @@ class KafkaConsumer:
         
         prediction_data = {'pred': pred}
         
-        self.database_client.set(prediction_id, prediction_data)
+        self.database_client.set(prediction_id, json.dumps(prediction_data))
         
     def consume_messages(self, timeout: float = 1.0):
         try:
