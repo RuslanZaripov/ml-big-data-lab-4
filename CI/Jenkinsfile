@@ -94,6 +94,7 @@ pipeline {
     post {
         always {
             bat 'chcp 65001 && docker logout'
+            cleanWs()
         }
     }
 }

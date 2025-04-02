@@ -2,7 +2,6 @@ import unittest
 import json
 import sys
 import os
-import argparse
 import time
 from fastapi.testclient import TestClient
 
