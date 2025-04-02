@@ -123,4 +123,4 @@ services:
                 condition: service_healthy
         ports:
             - 8000:8000
-        image: zarus03/ml-big-data-lab-3:latest
+        image: zarus03/ml-big-data-lab-4:latest
