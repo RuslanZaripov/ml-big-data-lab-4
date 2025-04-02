@@ -41,7 +41,7 @@ class KafkaConsumer:
             'enable.auto.offset.store': False}
         
         self.consumer = Consumer(conf)
-        self.consumer.subscribe([topic])
+        self.consumer.subscribe(topics=[topic])
         
     def _load_model(self):
         """
@@ -75,10 +75,12 @@ class KafkaConsumer:
         
     def consume_messages(self, timeout: float = 1.0):
         try:
+            self.log.info(f"Starting consumer for topic {self.topic}")
             while True:
                 msg = self.consumer.poll(timeout)
 
                 if msg is None:
+                    self.log.debug("No message received")
                     continue
                 
                 if msg.error():
