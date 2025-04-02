@@ -93,8 +93,10 @@ pipeline {
 
     post {
         always {
-            bat 'chcp 65001 && docker logout'
-            cleanWs()
+            script {
+                bat 'chcp 65001 && docker stop $(docker ps -a -q) && docker logout'
+                cleanWs()
+            }
         }
     }
 }
