@@ -92,7 +92,7 @@ services:
             test: ["CMD-SHELL", "grep -qa 'src/kafka_consumer.py' /proc/*/cmdline"]
             interval: 1m
             timeout: 10s
-            start-period: 5m
+            start_period: 5m
             retries: 30
     web:
         build: .
